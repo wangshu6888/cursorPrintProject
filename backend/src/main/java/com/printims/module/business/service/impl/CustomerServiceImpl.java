@@ -48,6 +48,9 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
 
     @Override
     public void saveCustomer(Customer entity) {
+        if (!StringUtils.hasText(entity.getCustomerName())) {
+            throw new BusinessException("客户名称不能为空");
+        }
         if (!StringUtils.hasText(entity.getCustomerNo())) {
             entity.setCustomerNo(BizNoUtil.customerNo());
         }

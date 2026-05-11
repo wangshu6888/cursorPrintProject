@@ -73,21 +73,31 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
 
     @Override
     public void saveOrder(PrintOrder entity) {
-        Customer c = customerService.getById(entity.getCustomerId());
-        if (c == null) {
-            throw new BusinessException("客户不存在");
+        if (entity.getOrderDate() == null) {
+            entity.setOrderDate(LocalDateTime.now());
         }
-        entity.setCustomerName(c.getCustomerName());
+        if (entity.getCustomerId() != null) {
+            Customer c = customerService.getById(entity.getCustomerId());
+            if (c == null) {
+                throw new BusinessException("客户不存在");
+            }
+            entity.setCustomerName(c.getCustomerName());
+        }
         if (entity.getMoldId() != null) {
             KnifeMold m = knifeMoldService.getById(entity.getMoldId());
             if (m != null) {
                 entity.setMoldName(m.getMoldName());
             }
         }
-        if (entity.getQuantity() != null && entity.getUnitPrice() != null) {
-            BigDecimal amt = entity.getUnitPrice().multiply(BigDecimal.valueOf(entity.getQuantity()))
-                    .setScale(2, RoundingMode.HALF_UP);
-            entity.setAmount(amt);
+        if (entity.getQuantity() != null) {
+            if (entity.getUnitPrice() != null) {
+                BigDecimal amt = entity.getUnitPrice().multiply(BigDecimal.valueOf(entity.getQuantity()))
+                        .setScale(2, RoundingMode.HALF_UP);
+                entity.setAmount(amt);
+            } else if (entity.getAmount() != null) {
+                BigDecimal up = entity.getAmount().divide(BigDecimal.valueOf(entity.getQuantity()), 4, RoundingMode.HALF_UP);
+                entity.setUnitPrice(up.setScale(2, RoundingMode.HALF_UP));
+            }
         }
         if (!StringUtils.hasText(entity.getOrderNo())) {
             entity.setOrderNo(BizNoUtil.orderNo());
@@ -211,5 +221,18 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
             o.setOrderNo(BizNoUtil.orderNo());
             saveOrder(o);
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchShip(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new BusinessException("请选择订单");
+        }
+        List<PrintOrder> orders = listByIds(ids);
+        for (PrintOrder o : orders) {
+            o.setShipped(1);
+        }
+        updateBatchById(orders);
     }
 }

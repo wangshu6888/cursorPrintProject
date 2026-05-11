@@ -25,4 +25,6 @@ public interface PrintOrderService extends IService<PrintOrder> {
     void exportExcel(HttpServletResponse response, OrderQuery query) throws IOException;
 
     void importExcel(MultipartFile file) throws IOException;
+
+    void batchShip(List<Long> ids);
 }

@@ -6,7 +6,9 @@
       <el-button type="primary" @click="load">查询</el-button>
     </el-form>
     <el-table :data="rows" v-loading="loading" stripe>
-      <el-table-column prop="createTime" label="时间" width="170" />
+      <el-table-column label="时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
       <el-table-column prop="username" label="用户" width="100" />
       <el-table-column prop="operation" label="操作" />
       <el-table-column prop="ip" label="IP" width="120" />
@@ -46,6 +48,19 @@ async function load() {
 }
 
 onMounted(load)
+
+function formatTime(v: unknown): string {
+  if (!v) return ''
+  if (Array.isArray(v) && v.length >= 5) {
+    const [y, m, d, hh, mm] = v as number[]
+    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
+  }
+  const s = String(v)
+  if (s.includes('T')) {
+    return s.replace('T', ' ').substring(0, 16)
+  }
+  return s
+}
 </script>
 
 <style scoped lang="scss">

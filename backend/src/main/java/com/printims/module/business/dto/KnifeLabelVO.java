@@ -12,6 +12,7 @@ public class KnifeLabelVO {
 
     private Long id;
     private String moldNo;
+    private String shapeType;
     private String model;
     private String locationCode;
     private BigDecimal length;

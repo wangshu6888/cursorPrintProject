@@ -103,6 +103,15 @@ public class OrderController {
         return R.ok(printOrderService.buildDeliveryPrint(req.getIds()));
     }
 
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','EMPLOYEE')")
+    @Log("批量出货")
+    @Operation(summary = "一键出货")
+    @PutMapping("/batch-ship")
+    public R<Void> batchShip(@RequestBody IdsReq req) {
+        printOrderService.batchShip(req.getIds());
+        return R.ok(null);
+    }
+
     @Data
     public static class IdsReq {
         private List<Long> ids;

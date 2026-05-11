@@ -18,10 +18,10 @@ public final class KnifeMoldRules {
             return "";
         }
         return switch (shapeType.toUpperCase()) {
-            case "RECTANGLE", "SQUARE" -> strip(length) + "×" + strip(width);
+            case "RECTANGLE", "SQUARE" -> strip(length) + "*" + strip(width);
             case "CIRCLE" -> "D" + strip(diameter);
             case "CUSTOM" -> "异型-" + (StringUtils.hasText(customSuffix) ? customSuffix : "001");
-            default -> strip(length) + "×" + strip(width);
+            default -> strip(length) + "*" + strip(width);
         };
     }
 

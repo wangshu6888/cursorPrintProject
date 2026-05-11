@@ -94,6 +94,8 @@ cursorPrintProject/
 │   ├── vite.config.ts
 │   └── tsconfig.json
 ├── docker-compose.yml                # MySQL 8.0 容器配置
+├── issues.md                          # 问题记录（按批次，已修复标记删除线）
+├── session-summary.md                 # 会话总结（技术决策、修改文件、下一步）
 ├── 印刷行业综合管理系统需求文档.md
 └── README.md
 ```
