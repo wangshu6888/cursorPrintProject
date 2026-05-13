@@ -1,0 +1,177 @@
+/* ══════════════════════════════════════════════════════════
+   Design Tokens — 印刷行业综合管理系统
+   Single source of truth for all visual properties.
+   Supports [data-theme="light"] and [data-theme="dark"].
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Typography ── */
+:root {
+  --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'Fira Code', 'JetBrains Mono', 'Noto Sans SC', monospace;
+
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 0.9375rem; /* 15px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.375rem;    /* 22px */
+  --text-2xl: 1.75rem;    /* 28px */
+  --text-3xl: 2.25rem;    /* 36px */
+}
+
+/* ── LIGHT THEME ── */
+:root,
+[data-theme="light"] {
+  /* Brand palette */
+  --color-primary:        #2563EB;
+  --color-primary-light:  #3B82F6;
+  --color-primary-lighter: #DBEAFE;
+  --color-primary-dark:   #1D4ED8;
+
+  --color-secondary:      #7C3AED;
+  --color-secondary-light:#A78BFA;
+  --color-secondary-lighter:#EDE9FE;
+
+  --color-accent:         #F97316;
+  --color-accent-light:   #FB923C;
+  --color-accent-lighter: #FFF7ED;
+
+  /* Semantic */
+  --color-success:  #22C55E;
+  --color-warning:  #F59E0B;
+  --color-error:    #EF4444;
+  --color-info:     #06B6D4;
+
+  /* Surfaces */
+  --bg-primary:   #F8FAFC;
+  --bg-surface:   #FFFFFF;
+  --bg-hover:     #F1F5F9;
+  --bg-muted:     #E2E8F0;
+
+  /* Text */
+  --text-primary:    #1E293B;
+  --text-secondary:  #64748B;
+  --text-muted:      #94A3B8;
+  --text-inverse:    #FFFFFF;
+
+  /* Borders */
+  --border-color:       #E2E8F0;
+  --border-color-light: #F1F5F9;
+
+  /* Shadows */
+  --shadow-xs:   0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md:   0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg:   0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl:   0 20px 48px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.06);
+
+  /* Radii */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+
+  /* Transitions */
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow:   0.4s ease;
+
+  /* Layout */
+  --sidebar-width:  240px;
+  --header-height:  56px;
+
+  /* Chart palette — CMYK-inspired for printing industry */
+  --chart-cyan:    #06B6D4;
+  --chart-magenta: #D946EF;
+  --chart-yellow:  #F59E0B;
+  --chart-key:     #1E293B;
+  --chart-blue:    #3B82F6;
+  --chart-green:   #22C55E;
+  --chart-orange:  #F97316;
+  --chart-purple:  #8B5CF6;
+
+  /* Backward compat — maps new tokens to old --apple-* names */
+  --apple-bg:     var(--bg-primary);
+  --apple-card:   var(--bg-surface);
+  --apple-text:   var(--text-primary);
+  --apple-muted:  var(--text-muted);
+  --apple-accent: var(--color-primary);
+  --apple-radius: var(--radius-lg);
+  --apple-shadow: var(--shadow-md);
+}
+
+/* ── DARK THEME ── */
+[data-theme="dark"] {
+  /* Brand palette */
+  --color-primary:        #7C3AED;
+  --color-primary-light:  #A78BFA;
+  --color-primary-lighter: #2E1065;
+  --color-primary-dark:   #6D28D9;
+
+  --color-secondary:      #06B6D4;
+  --color-secondary-light:#22D3EE;
+  --color-secondary-lighter:#083344;
+
+  --color-accent:         #06B6D4;
+  --color-accent-light:   #22D3EE;
+  --color-accent-lighter: #083344;
+
+  /* Semantic — same hues, adjusted for dark bg readability */
+  --color-success:  #4ADE80;
+  --color-warning:  #FBBF24;
+  --color-error:    #F87171;
+  --color-info:     #22D3EE;
+
+  /* Surfaces */
+  --bg-primary:   #0F172A;
+  --bg-surface:   #1E293B;
+  --bg-hover:     #334155;
+  --bg-muted:     #475569;
+
+  /* Text */
+  --text-primary:    #F8FAFC;
+  --text-secondary:  #94A3B8;
+  --text-muted:      #64748B;
+  --text-inverse:    #0F172A;
+
+  /* Borders */
+  --border-color:       #334155;
+  --border-color-light: #1E293B;
+
+  /* Shadows — heavier in dark mode for depth visibility */
+  --shadow-xs:   0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:   0 4px 16px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg:   0 12px 32px rgba(0, 0, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl:   0 20px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.4);
+
+  /* Chart palette — brighter for dark backgrounds */
+  --chart-cyan:    #22D3EE;
+  --chart-magenta: #E879F9;
+  --chart-yellow:  #FBBF24;
+  --chart-key:     #F8FAFC;
+  --chart-blue:    #60A5FA;
+  --chart-green:   #4ADE80;
+  --chart-orange:  #FB923C;
+  --chart-purple:  #A78BFA;
+
+  /* Backward compat */
+  --apple-bg:     var(--bg-primary);
+  --apple-card:   var(--bg-surface);
+  --apple-text:   var(--text-primary);
+  --apple-muted:  var(--text-muted);
+  --apple-accent: var(--color-primary);
+  --apple-radius: var(--radius-lg);
+  --apple-shadow: var(--shadow-md);
+}

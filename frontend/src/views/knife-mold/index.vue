@@ -225,7 +225,7 @@ onMounted(load)
   gap: 12px;
   margin-bottom: 16px;
   padding: 12px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 .lab-meta .small {

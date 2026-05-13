@@ -437,7 +437,7 @@ onMounted(load)
   border-collapse: collapse;
   th,
   td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     padding: 8px;
     font-size: 13px;
   }

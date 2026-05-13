@@ -30,10 +30,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, shallowRef } from 'vue'
+import { onMounted, onUnmounted, ref, shallowRef } from 'vue'
 import * as echarts from 'echarts'
 import http from '@/api/http'
+import { useThemeStore } from '@/stores/theme'
 
+const theme = useThemeStore()
 const loading = ref(false)
 const range = ref<[string | null, string | null]>([null, null])
 const chartTrend = ref<HTMLElement | null>(null)
@@ -41,6 +43,11 @@ const chartShip = ref<HTMLElement | null>(null)
 const chartCust = ref<HTMLElement | null>(null)
 const chartMold = ref<HTMLElement | null>(null)
 const inst = shallowRef<echarts.ECharts[]>([])
+
+const cachedData = ref<Record<string, unknown>>({})
+
+function textColor() { return theme.mode === 'dark' ? '#F8FAFC' : '#1E293B' }
+function textSecondary() { return theme.mode === 'dark' ? '#94A3B8' : '#64748B' }
 
 function disposeCharts() {
   inst.value.forEach((c) => c.dispose())
@@ -54,35 +61,46 @@ async function load() {
     const r = await http.get('/statistics/dashboard', {
       params: { start: range.value[0] || undefined, end: range.value[1] || undefined },
     })
-    const d = r.data
-    renderTrend(d.orderTrend || [])
-    renderShip(d.shipped || {})
-    renderCust(d.topCustomersByAmount || [])
-    renderMold(d.moldModelDistribution || [])
+    cachedData.value = r.data
+    renderAll()
   } finally {
     loading.value = false
   }
 }
 
+function renderAll() {
+  const d = cachedData.value
+  renderTrend(d.orderTrend || [])
+  renderShip(d.shipped || {})
+  renderCust(d.topCustomersByAmount || [])
+  renderMold(d.moldModelDistribution || [])
+}
+
+function onThemeChange() {
+  disposeCharts()
+  renderAll()
+}
+
 function renderTrend(rows: { d?: string; c?: number; a?: number }[]) {
   if (!chartTrend.value) return
-  const ch = echarts.init(chartTrend.value)
+  const ch = echarts.init(chartTrend.value, theme.mode === 'dark' ? 'dark' : undefined)
   inst.value.push(ch)
   ch.setOption({
-    title: { text: '订单趋势', left: 0, textStyle: { fontSize: 14 } },
+    title: { text: '订单趋势', left: 0, textStyle: { fontSize: 14, color: textColor() } },
     tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: rows.map((x) => String(x.d)) },
-    yAxis: { type: 'value' },
+    xAxis: { type: 'category', data: rows.map((x) => String(x.d)), axisLabel: { color: textSecondary() } },
+    yAxis: { type: 'value', axisLabel: { color: textSecondary() } },
     series: [{ name: '单量', type: 'line', smooth: true, data: rows.map((x) => x.c) }],
   })
 }
 
 function renderShip(s: Record<string, unknown>) {
   if (!chartShip.value) return
-  const ch = echarts.init(chartShip.value)
+  const ch = echarts.init(chartShip.value, theme.mode === 'dark' ? 'dark' : undefined)
   inst.value.push(ch)
   ch.setOption({
-    title: { text: '出货占比', left: 0, textStyle: { fontSize: 14 } },
+    title: { text: '出货占比', left: 0, textStyle: { fontSize: 14, color: textColor() } },
+    label: { color: textColor() },
     tooltip: { trigger: 'item' },
     series: [
       {
@@ -99,31 +117,33 @@ function renderShip(s: Record<string, unknown>) {
 
 function renderCust(rows: { name?: string; amt?: number }[]) {
   if (!chartCust.value) return
-  const ch = echarts.init(chartCust.value)
+  const ch = echarts.init(chartCust.value, theme.mode === 'dark' ? 'dark' : undefined)
   inst.value.push(ch)
   ch.setOption({
-    title: { text: '客户销售额 TOP', left: 0, textStyle: { fontSize: 14 } },
+    title: { text: '客户销售额 TOP', left: 0, textStyle: { fontSize: 14, color: textColor() } },
     tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: rows.map((x) => x.name), axisLabel: { rotate: 30 } },
-    yAxis: { type: 'value' },
+    xAxis: { type: 'category', data: rows.map((x) => x.name), axisLabel: { rotate: 30, color: textSecondary() } },
+    yAxis: { type: 'value', axisLabel: { color: textSecondary() } },
     series: [{ type: 'bar', data: rows.map((x) => x.amt) }],
   })
 }
 
 function renderMold(rows: { name?: string; cnt?: number }[]) {
   if (!chartMold.value) return
-  const ch = echarts.init(chartMold.value)
+  const ch = echarts.init(chartMold.value, theme.mode === 'dark' ? 'dark' : undefined)
   inst.value.push(ch)
   ch.setOption({
-    title: { text: '刀模型号分布', left: 0, textStyle: { fontSize: 14 } },
+    title: { text: '刀模型号分布', left: 0, textStyle: { fontSize: 14, color: textColor() } },
     tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: rows.map((x) => x.name), axisLabel: { rotate: 40 } },
-    yAxis: { type: 'value' },
+    xAxis: { type: 'category', data: rows.map((x) => x.name), axisLabel: { rotate: 40, color: textSecondary() } },
+    yAxis: { type: 'value', axisLabel: { color: textSecondary() } },
     series: [{ type: 'bar', data: rows.map((x) => x.cnt) }],
   })
 }
 
 onMounted(load)
+window.addEventListener('theme-change', onThemeChange)
+onUnmounted(() => window.removeEventListener('theme-change', onThemeChange))
 </script>
 
 <style scoped lang="scss">
