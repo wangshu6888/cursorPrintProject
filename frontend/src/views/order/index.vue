@@ -36,10 +36,13 @@
       <el-table-column prop="shipped" label="出货" width="80">
         <template #default="{ row }">{{ row.shipped === 1 ? '是' : '否' }}</template>
       </el-table-column>
-      <el-table-column v-if="canWrite" label="操作" width="140" fixed="right">
+      <el-table-column label="操作" width="180" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="open(row)">编辑</el-button>
-          <el-button link type="danger" @click="remove(row)">删除</el-button>
+          <el-button link type="primary" @click="viewDetail(row)">查看</el-button>
+          <template v-if="canWrite">
+            <el-button link type="primary" @click="open(row)">编辑</el-button>
+            <el-button link type="danger" @click="remove(row)">删除</el-button>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -182,6 +185,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import http from '@/api/http'
 import { useUserStore } from '@/stores/user'
@@ -189,6 +193,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { UploadRequestOptions } from 'element-plus'
 
 const u = useUserStore()
+const router = useRouter()
 const canWrite = computed(
   () => u.roleCodes.includes('SUPER_ADMIN') || u.roleCodes.includes('EMPLOYEE')
 )
@@ -238,6 +243,10 @@ async function searchCust(q: string) {
 async function searchMold(q: string) {
   const r = await http.get('/knife-molds', { params: { keyword: q, pageNum: 1, pageSize: 200 } })
   moldOpts.value = r.data.records
+}
+
+function viewDetail(row: Record<string, unknown>) {
+  router.push(`/order/${row.id}`)
 }
 
 function open(row?: Record<string, unknown>) {

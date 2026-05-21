@@ -13,6 +13,7 @@ const router = createRouter({
       children: [
         { path: 'dashboard', component: () => import('@/views/dashboard/index.vue'), meta: { title: '工作台' } },
         { path: 'order', component: () => import('@/views/order/index.vue'), meta: { title: '订单管理' } },
+        { path: 'order/:id', component: () => import('@/views/order/detail.vue'), meta: { title: '订单详情' } },
         { path: 'customer', component: () => import('@/views/customer/index.vue'), meta: { title: '客户管理' } },
         { path: 'knife-mold', component: () => import('@/views/knife-mold/index.vue'), meta: { title: '刀模管理' } },
         { path: 'statistics', component: () => import('@/views/statistics/index.vue'), meta: { title: '数据统计' } },
@@ -58,7 +59,9 @@ router.beforeEach(async (to, _from, next) => {
   if (to.path === '/' || p === 'dashboard') {
     return next()
   }
-  if (!allowed.has(p)) {
+  const segments = p.split('/')
+  const parent = segments[0] || p
+  if (!allowed.has(p) && !allowed.has(parent)) {
     return next({ path: '/dashboard' })
   }
   next()
