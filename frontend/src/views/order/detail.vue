@@ -130,4 +130,13 @@ onMounted(async () => {
   display: flex;
   gap: var(--space-2);
 }
+
+:deep(.el-descriptions__label) {
+  width: auto !important;
+  white-space: nowrap;
+  min-width: fit-content;
+}
+:deep(.el-descriptions__content) {
+  width: auto;
+}
 </style>
