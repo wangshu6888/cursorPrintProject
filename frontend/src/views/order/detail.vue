@@ -20,7 +20,7 @@
 
       <!-- 基础信息 -->
       <h3 class="section-title">基础信息</h3>
-      <el-descriptions :column="2" border size="large" label-class-name="auto-label">
+      <el-descriptions :column="2" border size="large">
         <el-descriptions-item label="订单号">{{ order.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="送货单号">{{ order.deliveryNo || '-' }}</el-descriptions-item>
         <el-descriptions-item label="下单日期">{{ formatTime(order.orderDate) }}</el-descriptions-item>
@@ -30,14 +30,14 @@
 
       <!-- 客户与刀模 -->
       <h3 class="section-title">客户与刀模</h3>
-      <el-descriptions :column="2" border size="large" label-class-name="auto-label">
+      <el-descriptions :column="2" border size="large">
         <el-descriptions-item label="客户名称">{{ order.customerName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="刀模名称">{{ order.moldName || '-' }}</el-descriptions-item>
       </el-descriptions>
 
       <!-- 价格明细 -->
       <h3 class="section-title">价格明细</h3>
-      <el-descriptions :column="3" border size="large" label-class-name="auto-label">
+      <el-descriptions :column="3" border size="large">
         <el-descriptions-item label="数量">{{ order.quantity ?? '-' }}</el-descriptions-item>
         <el-descriptions-item label="单价">{{ order.unitPrice != null ? '¥' + order.unitPrice : '-' }}</el-descriptions-item>
         <el-descriptions-item label="金额">{{ order.amount != null ? '¥' + order.amount : '-' }}</el-descriptions-item>
@@ -45,7 +45,7 @@
 
       <!-- 生产信息 -->
       <h3 class="section-title">生产信息</h3>
-      <el-descriptions :column="2" border size="large" label-class-name="auto-label">
+      <el-descriptions :column="2" border size="large">
         <el-descriptions-item label="排单号">{{ order.scheduleNo || '-' }}</el-descriptions-item>
         <el-descriptions-item label="材料">{{ order.material || '-' }}</el-descriptions-item>
         <el-descriptions-item label="备注" :span="2">{{ order.remark || '-' }}</el-descriptions-item>
@@ -54,7 +54,7 @@
 
       <!-- 系统信息 -->
       <h3 class="section-title">系统信息</h3>
-      <el-descriptions :column="2" border size="small" label-class-name="auto-label">
+      <el-descriptions :column="2" border size="small">
         <el-descriptions-item label="创建时间">{{ formatTime(order.createTime) }}</el-descriptions-item>
         <el-descriptions-item label="更新时间">{{ formatTime(order.updateTime) }}</el-descriptions-item>
         <el-descriptions-item label="创建人ID">{{ order.createBy ?? '-' }}</el-descriptions-item>
@@ -139,9 +139,14 @@ onMounted(async () => {
   gap: var(--space-2);
 }
 
-:deep(.auto-label) {
-  width: auto !important;
+:deep(.el-descriptions__table) {
+  table-layout: auto !important;
+}
+:deep(.el-descriptions__label) {
+  width: 1% !important;
   white-space: nowrap;
-  min-width: auto !important;
+}
+:deep(.el-descriptions__content) {
+  width: auto !important;
 }
 </style>
