@@ -1,5 +1,5 @@
 <template>
-  <div class="apple-card" v-loading="loading">
+  <div class="detail-page" v-loading="loading">
     <div class="detail-header">
       <el-button text @click="$router.back()">
         <el-icon><ArrowLeft /></el-icon>
@@ -18,11 +18,9 @@
         </el-tag>
       </div>
 
-      <el-divider />
-
       <!-- 基础信息 -->
       <h3 class="section-title">基础信息</h3>
-      <el-descriptions :column="2" border size="large">
+      <el-descriptions :column="2" border size="large" label-class-name="auto-label">
         <el-descriptions-item label="订单号">{{ order.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="送货单号">{{ order.deliveryNo || '-' }}</el-descriptions-item>
         <el-descriptions-item label="下单日期">{{ formatTime(order.orderDate) }}</el-descriptions-item>
@@ -32,14 +30,14 @@
 
       <!-- 客户与刀模 -->
       <h3 class="section-title">客户与刀模</h3>
-      <el-descriptions :column="2" border size="large">
+      <el-descriptions :column="2" border size="large" label-class-name="auto-label">
         <el-descriptions-item label="客户名称">{{ order.customerName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="刀模名称">{{ order.moldName || '-' }}</el-descriptions-item>
       </el-descriptions>
 
       <!-- 价格明细 -->
       <h3 class="section-title">价格明细</h3>
-      <el-descriptions :column="3" border size="large">
+      <el-descriptions :column="3" border size="large" label-class-name="auto-label">
         <el-descriptions-item label="数量">{{ order.quantity ?? '-' }}</el-descriptions-item>
         <el-descriptions-item label="单价">{{ order.unitPrice != null ? '¥' + order.unitPrice : '-' }}</el-descriptions-item>
         <el-descriptions-item label="金额">{{ order.amount != null ? '¥' + order.amount : '-' }}</el-descriptions-item>
@@ -47,7 +45,7 @@
 
       <!-- 生产信息 -->
       <h3 class="section-title">生产信息</h3>
-      <el-descriptions :column="2" border size="large">
+      <el-descriptions :column="2" border size="large" label-class-name="auto-label">
         <el-descriptions-item label="排单号">{{ order.scheduleNo || '-' }}</el-descriptions-item>
         <el-descriptions-item label="材料">{{ order.material || '-' }}</el-descriptions-item>
         <el-descriptions-item label="备注" :span="2">{{ order.remark || '-' }}</el-descriptions-item>
@@ -56,7 +54,7 @@
 
       <!-- 系统信息 -->
       <h3 class="section-title">系统信息</h3>
-      <el-descriptions :column="2" border size="small">
+      <el-descriptions :column="2" border size="small" label-class-name="auto-label">
         <el-descriptions-item label="创建时间">{{ formatTime(order.createTime) }}</el-descriptions-item>
         <el-descriptions-item label="更新时间">{{ formatTime(order.updateTime) }}</el-descriptions-item>
         <el-descriptions-item label="创建人ID">{{ order.createBy ?? '-' }}</el-descriptions-item>
@@ -104,11 +102,19 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+.detail-page {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
 .detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: var(--space-4);
   margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
 }
 .detail-title {
   display: flex;
@@ -123,20 +129,19 @@ onMounted(async () => {
 .section-title {
   font-size: var(--text-base);
   font-weight: 600;
-  margin: var(--space-6) 0 var(--space-3);
+  margin: var(--space-5) 0 var(--space-3);
   color: var(--text-primary);
+  padding-bottom: var(--space-1);
+  border-bottom: 2px solid var(--color-primary-lighter);
 }
 .header-actions {
   display: flex;
   gap: var(--space-2);
 }
 
-:deep(.el-descriptions__label) {
+:deep(.auto-label) {
   width: auto !important;
   white-space: nowrap;
-  min-width: fit-content;
-}
-:deep(.el-descriptions__content) {
-  width: auto;
+  min-width: auto !important;
 }
 </style>
