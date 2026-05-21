@@ -1,52 +1,28 @@
 /* ══════════════════════════════════════════════════════════
    Element Plus Theme Overrides
    Maps Element Plus --el-* CSS variables to our design tokens.
-   Element Plus 2.7.x reads these at runtime — no SCSS build needed.
+   Uses color-mix() to generate proper light/dark variants
+   that auto-adapt to the current theme via var(--bg-primary).
    ══════════════════════════════════════════════════════════ */
 
+/* ── Shared base colors (same for light & dark, values resolve via token) ── */
 :root,
 [data-theme="light"],
 [data-theme="dark"] {
-  /* Brand colors */
   --el-color-primary: var(--color-primary);
-  --el-color-primary-light-3: var(--color-primary-light);
-  --el-color-primary-light-5: var(--color-primary-lighter);
-  --el-color-primary-light-7: var(--color-primary-lighter);
-  --el-color-primary-light-8: var(--color-primary-lighter);
-  --el-color-primary-light-9: var(--color-primary-lighter);
   --el-color-primary-dark-2: var(--color-primary-dark);
 
   --el-color-success: var(--color-success);
-  --el-color-success-light-3: var(--color-success);
-  --el-color-success-light-5: var(--color-success);
-  --el-color-success-light-7: var(--color-success);
-  --el-color-success-light-8: var(--color-success);
-  --el-color-success-light-9: var(--color-success);
   --el-color-success-dark-2: var(--color-success);
 
   --el-color-warning: var(--color-warning);
-  --el-color-warning-light-3: var(--color-warning);
-  --el-color-warning-light-5: var(--color-warning);
-  --el-color-warning-light-7: var(--color-warning);
-  --el-color-warning-light-8: var(--color-warning);
-  --el-color-warning-light-9: var(--color-warning);
   --el-color-warning-dark-2: var(--color-warning);
 
   --el-color-danger: var(--color-error);
   --el-color-error: var(--color-error);
-  --el-color-danger-light-3: var(--color-error);
-  --el-color-danger-light-5: var(--color-error);
-  --el-color-danger-light-7: var(--color-error);
-  --el-color-danger-light-8: var(--color-error);
-  --el-color-danger-light-9: var(--color-error);
   --el-color-danger-dark-2: var(--color-error);
 
   --el-color-info: var(--color-info);
-  --el-color-info-light-3: var(--color-info);
-  --el-color-info-light-5: var(--color-info);
-  --el-color-info-light-7: var(--color-info);
-  --el-color-info-light-8: var(--color-info);
-  --el-color-info-light-9: var(--color-info);
   --el-color-info-dark-2: var(--color-info);
 
   /* Text colors */
@@ -90,4 +66,44 @@
   --el-box-shadow-light: var(--shadow-sm);
   --el-box-shadow-lighter: var(--shadow-xs);
   --el-box-shadow-dark: var(--shadow-lg);
+}
+
+/* ── Light variants — mix with bg-primary which auto-adapts per theme ── */
+/*     light-9 = 10% color + 90% bg   (tag bg, alert bg)               */
+/*     light-8 = 20% color + 80% bg   (tag border)                      */
+/*     light-7 = 30% color + 70% bg   (plain button hover)              */
+/*     light-5 = 50% color + 50% bg   (plain button active)             */
+/*     light-3 = 70% color + 30% bg   (dark mode tint)                  */
+:root,
+[data-theme="light"],
+[data-theme="dark"] {
+  --el-color-primary-light-3: color-mix(in srgb, var(--color-primary) 70%, var(--bg-primary));
+  --el-color-primary-light-5: color-mix(in srgb, var(--color-primary) 50%, var(--bg-primary));
+  --el-color-primary-light-7: color-mix(in srgb, var(--color-primary) 30%, var(--bg-primary));
+  --el-color-primary-light-8: color-mix(in srgb, var(--color-primary) 20%, var(--bg-primary));
+  --el-color-primary-light-9: color-mix(in srgb, var(--color-primary) 10%, var(--bg-primary));
+
+  --el-color-success-light-3: color-mix(in srgb, var(--color-success) 70%, var(--bg-primary));
+  --el-color-success-light-5: color-mix(in srgb, var(--color-success) 50%, var(--bg-primary));
+  --el-color-success-light-7: color-mix(in srgb, var(--color-success) 30%, var(--bg-primary));
+  --el-color-success-light-8: color-mix(in srgb, var(--color-success) 20%, var(--bg-primary));
+  --el-color-success-light-9: color-mix(in srgb, var(--color-success) 10%, var(--bg-primary));
+
+  --el-color-warning-light-3: color-mix(in srgb, var(--color-warning) 70%, var(--bg-primary));
+  --el-color-warning-light-5: color-mix(in srgb, var(--color-warning) 50%, var(--bg-primary));
+  --el-color-warning-light-7: color-mix(in srgb, var(--color-warning) 30%, var(--bg-primary));
+  --el-color-warning-light-8: color-mix(in srgb, var(--color-warning) 20%, var(--bg-primary));
+  --el-color-warning-light-9: color-mix(in srgb, var(--color-warning) 10%, var(--bg-primary));
+
+  --el-color-danger-light-3: color-mix(in srgb, var(--color-error) 70%, var(--bg-primary));
+  --el-color-danger-light-5: color-mix(in srgb, var(--color-error) 50%, var(--bg-primary));
+  --el-color-danger-light-7: color-mix(in srgb, var(--color-error) 30%, var(--bg-primary));
+  --el-color-danger-light-8: color-mix(in srgb, var(--color-error) 20%, var(--bg-primary));
+  --el-color-danger-light-9: color-mix(in srgb, var(--color-error) 10%, var(--bg-primary));
+
+  --el-color-info-light-3: color-mix(in srgb, var(--color-info) 70%, var(--bg-primary));
+  --el-color-info-light-5: color-mix(in srgb, var(--color-info) 50%, var(--bg-primary));
+  --el-color-info-light-7: color-mix(in srgb, var(--color-info) 30%, var(--bg-primary));
+  --el-color-info-light-8: color-mix(in srgb, var(--color-info) 20%, var(--bg-primary));
+  --el-color-info-light-9: color-mix(in srgb, var(--color-info) 10%, var(--bg-primary));
 }
