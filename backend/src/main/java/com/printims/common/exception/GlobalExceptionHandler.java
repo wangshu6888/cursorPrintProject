@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
         return R.fail(e.getCode(), e.getMessage());
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
+    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, jakarta.validation.ConstraintViolationException.class})
     public R<Void> handleValid(Exception e) {
         String msg = "参数错误";
         if (e instanceof MethodArgumentNotValidException m) {
@@ -32,6 +32,8 @@ public class GlobalExceptionHandler {
             }
         } else if (e instanceof BindException b && b.getFieldError() != null) {
             msg = b.getFieldError().getDefaultMessage();
+        } else if (e instanceof jakarta.validation.ConstraintViolationException c) {
+            msg = c.getConstraintViolations().stream().findFirst().map(jakarta.validation.ConstraintViolation::getMessage).orElse(msg);
         }
         return R.fail(400, msg);
     }

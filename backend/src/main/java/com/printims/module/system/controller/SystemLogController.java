@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/system/logs")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('SUPER_ADMIN')")
+@org.springframework.validation.annotation.Validated
 public class SystemLogController {
 
     private final SysOperationLogService logService;
@@ -34,8 +35,8 @@ public class SystemLogController {
     @Operation(summary = "分页查询")
     @GetMapping
     public R<PageResult<SysOperationLog>> page(
-            @RequestParam(defaultValue = "1") long pageNum,
-            @RequestParam(defaultValue = "20") long pageSize,
+            @RequestParam(defaultValue = "1") @jakarta.validation.constraints.Min(1) long pageNum,
+            @RequestParam(defaultValue = "20") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(1000) long pageSize,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {

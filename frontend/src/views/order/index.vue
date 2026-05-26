@@ -140,6 +140,16 @@
         <el-button type="primary" @click="saveQuickCustomer">保存</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="qmDlg" title="快速新增刀模" width="480px">
+      <el-form :model="qm" label-width="80px">
+        <el-form-item label="名称" required><el-input v-model="qm.moldName" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="qmDlg = false">取消</el-button>
+        <el-button type="primary" @click="saveQuickMold">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -169,6 +179,8 @@ const printDlg = ref(false)
 const printData = ref<Record<string, unknown> | null>(null)
 const qcDlg = ref(false)
 const qc = reactive({ customerName: '', phone: '' })
+const qmDlg = ref(false)
+const qm = reactive({ moldName: '' })
 
 async function load() {
   loading.value = true
@@ -284,7 +296,24 @@ async function saveQuickCustomer() {
 }
 
 function quickMold() {
-  ElMessage.info('请前往刀模管理新增后在此搜索选择')
+  qm.moldName = ''
+  qmDlg.value = true
+}
+
+async function saveQuickMold() {
+  await http.post('/knife-molds', {
+    moldName: qm.moldName,
+    shapeType: 'CUSTOM',
+    areaCode: 'A',
+    shelfNo: '1',
+    layerNo: '1',
+    positionNo: '1'
+  })
+  ElMessage.success('刀模已创建')
+  qmDlg.value = false
+  await searchMold(qm.moldName)
+  const last = moldOpts.value[0]
+  if (last) form.moldId = last.id
 }
 
 onMounted(load)

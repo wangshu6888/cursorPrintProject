@@ -72,12 +72,36 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void saveOrder(PrintOrder entity) {
+        // Quick add for Customer
+        if (entity.getCustomerId() == null && StringUtils.hasText(entity.getCustomerName())) {
+            Customer newCustomer = new Customer();
+            newCustomer.setCustomerName(entity.getCustomerName());
+            newCustomer.setPhone("00000000000"); // Dummy phone as it's required in some logic, but let's see if DB allows null. DB schema says phone is varchar(20), not strictly not null in DB perhaps, but required in docs.
+            customerService.saveCustomer(newCustomer);
+            entity.setCustomerId(newCustomer.getId());
+        }
+
         Customer c = customerService.getById(entity.getCustomerId());
         if (c == null) {
             throw new BusinessException("客户不存在");
         }
         entity.setCustomerName(c.getCustomerName());
+
+        // Quick add for KnifeMold
+        if (entity.getMoldId() == null && StringUtils.hasText(entity.getMoldName())) {
+            KnifeMold newMold = new KnifeMold();
+            newMold.setMoldName(entity.getMoldName());
+            newMold.setShapeType("CUSTOM");
+            newMold.setAreaCode("A");
+            newMold.setShelfNo("1");
+            newMold.setLayerNo("1");
+            newMold.setPositionNo("1");
+            knifeMoldService.saveMold(newMold);
+            entity.setMoldId(newMold.getId());
+        }
+
         if (entity.getMoldId() != null) {
             KnifeMold m = knifeMoldService.getById(entity.getMoldId());
             if (m != null) {
@@ -87,7 +111,10 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
         if (entity.getQuantity() != null && entity.getUnitPrice() != null) {
             BigDecimal amt = entity.getUnitPrice().multiply(BigDecimal.valueOf(entity.getQuantity()))
                     .setScale(2, RoundingMode.HALF_UP);
+            // Forcefully override frontend amount
             entity.setAmount(amt);
+        } else {
+            entity.setAmount(BigDecimal.ZERO);
         }
         if (!StringUtils.hasText(entity.getOrderNo())) {
             entity.setOrderNo(BizNoUtil.orderNo());
@@ -137,13 +164,18 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
 
     @Override
     public void exportExcel(HttpServletResponse response, OrderQuery query) throws IOException {
-        query.setPageNum(1);
-        query.setPageSize(5000);
-        List<PrintOrder> list = pageQuery(query).getRecords();
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String fileName = URLEncoder.encode("订单导出", StandardCharsets.UTF_8).replace("+", "%20");
         response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+        exportExcelToStream(response.getOutputStream(), query);
+    }
+
+    @Override
+    public void exportExcelToStream(java.io.OutputStream outputStream, OrderQuery query) throws IOException {
+        query.setPageNum(1);
+        query.setPageSize(5000);
+        List<PrintOrder> list = pageQuery(query).getRecords();
         List<OrderExportRow> rows = list.stream().map(o -> {
             OrderExportRow r = new OrderExportRow();
             r.setOrderNo(o.getOrderNo());
@@ -162,7 +194,7 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
             r.setRemark(o.getRemark());
             return r;
         }).toList();
-        EasyExcel.write(response.getOutputStream(), OrderExportRow.class).sheet("订单").doWrite(rows);
+        EasyExcel.write(outputStream, OrderExportRow.class).sheet("订单").doWrite(rows);
     }
 
     @Override

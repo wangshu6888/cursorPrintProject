@@ -39,6 +39,7 @@ import java.util.List;
 @RequestMapping("/api/system/users")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('SUPER_ADMIN')")
+@org.springframework.validation.annotation.Validated
 public class SystemUserController {
 
     private final SysUserService sysUserService;
@@ -48,8 +49,8 @@ public class SystemUserController {
     @Operation(summary = "分页")
     @GetMapping
     public R<PageResult<SysUser>> page(
-            @RequestParam(defaultValue = "1") long pageNum,
-            @RequestParam(defaultValue = "20") long pageSize,
+            @RequestParam(defaultValue = "1") @jakarta.validation.constraints.Min(1) long pageNum,
+            @RequestParam(defaultValue = "20") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(1000) long pageSize,
             @RequestParam(required = false) String keyword) {
         Page<SysUser> p = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<SysUser> w = new LambdaQueryWrapper<>();

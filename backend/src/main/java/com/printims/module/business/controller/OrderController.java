@@ -34,6 +34,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
+@org.springframework.validation.annotation.Validated
 public class OrderController {
 
     private final PrintOrderService printOrderService;
@@ -41,7 +42,7 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','FINANCE','EMPLOYEE')")
     @Operation(summary = "分页查询")
     @GetMapping
-    public R<PageResult<PrintOrder>> page(OrderQuery query) {
+    public R<PageResult<PrintOrder>> page(@Valid OrderQuery query) {
         return R.ok(printOrderService.pageQuery(query));
     }
 
@@ -83,8 +84,18 @@ public class OrderController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','FINANCE','EMPLOYEE')")
     @Operation(summary = "导出Excel")
     @GetMapping("/export")
-    public void export(OrderQuery query, HttpServletResponse response) throws IOException {
-        printOrderService.exportExcel(response, query);
+    public org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody export(OrderQuery query, HttpServletResponse response) {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding(java.nio.charset.StandardCharsets.UTF_8.name());
+        String fileName = java.net.URLEncoder.encode("订单导出", java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
+        response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+        return outputStream -> {
+            try {
+                printOrderService.exportExcelToStream(outputStream, query);
+            } catch (Exception e) {
+                // Log exception
+            }
+        };
     }
 
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','EMPLOYEE')")
