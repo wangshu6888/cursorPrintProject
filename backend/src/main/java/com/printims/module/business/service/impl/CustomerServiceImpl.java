@@ -14,6 +14,7 @@ import com.printims.module.business.service.CustomerService;
 import com.printims.util.BizNoUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -47,6 +48,7 @@ public class CustomerServiceImpl extends ServiceImpl<CustomerMapper, Customer> i
     }
 
     @Override
+    @CacheEvict(value = "dashboard", allEntries = true)
     public void saveCustomer(Customer entity) {
         if (!StringUtils.hasText(entity.getCustomerNo())) {
             entity.setCustomerNo(BizNoUtil.customerNo());

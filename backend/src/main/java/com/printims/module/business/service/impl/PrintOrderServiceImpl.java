@@ -22,6 +22,7 @@ import com.printims.module.business.service.PrintOrderService;
 import com.printims.util.BizNoUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -81,6 +82,7 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
     }
 
     @Override
+    @CacheEvict(value = "dashboard", allEntries = true)
     public void saveOrder(PrintOrder entity) {
         Customer c = customerService.getById(entity.getCustomerId());
         if (c == null) {
