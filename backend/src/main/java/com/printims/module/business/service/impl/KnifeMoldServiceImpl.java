@@ -12,6 +12,7 @@ import com.printims.module.business.mapper.KnifeMoldMapper;
 import com.printims.module.business.service.KnifeMoldService;
 import com.printims.util.BizNoUtil;
 import com.printims.util.KnifeMoldRules;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -45,6 +46,7 @@ public class KnifeMoldServiceImpl extends ServiceImpl<KnifeMoldMapper, KnifeMold
     }
 
     @Override
+    @CacheEvict(value = "dashboard", allEntries = true)
     public void saveMold(KnifeMold entity) {
         validateShape(entity);
         entity.setLocationCode(KnifeMoldRules.buildLocationCode(

@@ -2,6 +2,7 @@ package com.printims.module.statistics.service;
 
 import com.printims.module.statistics.mapper.StatisticsMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ public class StatisticsService {
     /**
      * 汇总看板所需全部序列数据。
      */
+    @Cacheable(value = "dashboard", key = "T(String).valueOf(#start).concat('_').concat(T(String).valueOf(#end))")
     public Map<String, Object> dashboard(LocalDate start, LocalDate end) {
         Map<String, Object> m = new HashMap<>();
         m.put("orderTotal", statisticsMapper.countOrders(start, end));

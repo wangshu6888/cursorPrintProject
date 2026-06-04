@@ -1,6 +1,8 @@
 package com.printims.module.business.service.impl;
 
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelWriter;
+import com.alibaba.excel.write.metadata.WriteSheet;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,6 +22,7 @@ import com.printims.module.business.service.PrintOrderService;
 import com.printims.util.BizNoUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -34,7 +37,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 订单服务实现。
@@ -49,6 +54,12 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
     @Override
     public PageResult<PrintOrder> pageQuery(OrderQuery query) {
         Page<PrintOrder> p = new Page<>(query.getPageNum(), query.getPageSize());
+        LambdaQueryWrapper<PrintOrder> w = buildQueryWrapper(query);
+        Page<PrintOrder> result = page(p, w);
+        return PageResult.of(result.getRecords(), result.getTotal(), result.getCurrent(), result.getSize());
+    }
+
+    private LambdaQueryWrapper<PrintOrder> buildQueryWrapper(OrderQuery query) {
         LambdaQueryWrapper<PrintOrder> w = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(query.getKeyword())) {
             String k = query.getKeyword().trim();
@@ -67,11 +78,11 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
             w.eq(PrintOrder::getShipped, query.getShipped());
         }
         w.orderByDesc(PrintOrder::getOrderDate);
-        Page<PrintOrder> result = page(p, w);
-        return PageResult.of(result.getRecords(), result.getTotal(), result.getCurrent(), result.getSize());
+        return w;
     }
 
     @Override
+    @CacheEvict(value = "dashboard", allEntries = true)
     public void saveOrder(PrintOrder entity) {
         Customer c = customerService.getById(entity.getCustomerId());
         if (c == null) {
@@ -137,47 +148,79 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
 
     @Override
     public void exportExcel(HttpServletResponse response, OrderQuery query) throws IOException {
-        query.setPageNum(1);
-        query.setPageSize(5000);
-        List<PrintOrder> list = pageQuery(query).getRecords();
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         String fileName = URLEncoder.encode("订单导出", StandardCharsets.UTF_8).replace("+", "%20");
         response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
-        List<OrderExportRow> rows = list.stream().map(o -> {
-            OrderExportRow r = new OrderExportRow();
-            r.setOrderNo(o.getOrderNo());
-            r.setOrderDate(o.getOrderDate());
-            r.setDeliveryNo(o.getDeliveryNo());
-            r.setPrintName(o.getPrintName());
-            r.setQuantity(o.getQuantity());
-            r.setUnitPrice(o.getUnitPrice());
-            r.setAmount(o.getAmount());
-            r.setScheduleNo(o.getScheduleNo());
-            r.setCustomerName(o.getCustomerName());
-            r.setMoldName(o.getMoldName());
-            r.setMaterial(o.getMaterial());
-            r.setShipped(o.getShipped() != null && o.getShipped() == 1 ? "是" : "否");
-            r.setDeliveryDate(o.getDeliveryDate());
-            r.setRemark(o.getRemark());
-            return r;
-        }).toList();
-        EasyExcel.write(response.getOutputStream(), OrderExportRow.class).sheet("订单").doWrite(rows);
+
+        int pageSize = 10000;
+        long total = count(buildQueryWrapper(query));
+        long pages = (total + pageSize - 1) / pageSize;
+
+        try (ExcelWriter excelWriter = EasyExcel.write(response.getOutputStream(), OrderExportRow.class).build()) {
+            WriteSheet writeSheet = EasyExcel.writerSheet("订单").build();
+            for (int i = 1; i <= Math.max(1, pages); i++) {
+                query.setPageNum(i);
+                query.setPageSize(pageSize);
+                List<PrintOrder> list = pageQuery(query).getRecords();
+
+                List<OrderExportRow> rows = list.stream().map(o -> {
+                    OrderExportRow r = new OrderExportRow();
+                    r.setOrderNo(o.getOrderNo());
+                    r.setOrderDate(o.getOrderDate());
+                    r.setDeliveryNo(o.getDeliveryNo());
+                    r.setPrintName(o.getPrintName());
+                    r.setQuantity(o.getQuantity());
+                    r.setUnitPrice(o.getUnitPrice());
+                    r.setAmount(o.getAmount());
+                    r.setScheduleNo(o.getScheduleNo());
+                    r.setCustomerName(o.getCustomerName());
+                    r.setMoldName(o.getMoldName());
+                    r.setMaterial(o.getMaterial());
+                    r.setShipped(o.getShipped() != null && o.getShipped() == 1 ? "是" : "否");
+                    r.setDeliveryDate(o.getDeliveryDate());
+                    r.setRemark(o.getRemark());
+                    return r;
+                }).toList();
+                excelWriter.write(rows, writeSheet);
+            }
+        }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void importExcel(MultipartFile file) throws IOException {
         List<OrderExcelRow> rows = EasyExcel.read(file.getInputStream()).head(OrderExcelRow.class).sheet().doReadSync();
+
+        Set<String> customerNames = new HashSet<>();
+        Set<String> moldModels = new HashSet<>();
+        for (OrderExcelRow r : rows) {
+            if (StringUtils.hasText(r.getCustomerName())) {
+                customerNames.add(r.getCustomerName().trim());
+            }
+            if (StringUtils.hasText(r.getMoldModel())) {
+                moldModels.add(r.getMoldModel().trim());
+            }
+        }
+
+        Map<String, Customer> customerMap = customerNames.isEmpty() ? java.util.Collections.emptyMap() :
+                customerService.lambdaQuery().in(Customer::getCustomerName, customerNames).list()
+                        .stream().collect(Collectors.toMap(Customer::getCustomerName, c -> c, (v1, v2) -> v1));
+
+        Map<String, KnifeMold> moldMap = moldModels.isEmpty() ? java.util.Collections.emptyMap() :
+                knifeMoldService.lambdaQuery().in(KnifeMold::getModel, moldModels).list()
+                        .stream().collect(Collectors.toMap(KnifeMold::getModel, m -> m, (v1, v2) -> v1));
+
+        List<PrintOrder> ordersToSave = new ArrayList<>();
+
         for (OrderExcelRow r : rows) {
             if (r.getOrderDate() == null || !StringUtils.hasText(r.getCustomerName())
                     || !StringUtils.hasText(r.getPrintName()) || r.getQuantity() == null || r.getUnitPrice() == null
                     || !StringUtils.hasText(r.getDeliveryNo())) {
                 continue;
             }
-            Customer c = customerService.lambdaQuery()
-                    .eq(Customer::getCustomerName, r.getCustomerName().trim())
-                    .one();
+
+            Customer c = customerMap.get(r.getCustomerName().trim());
             if (c == null) {
                 throw new BusinessException("导入失败：客户不存在 " + r.getCustomerName());
             }
@@ -187,15 +230,19 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
             o.setPrintName(r.getPrintName().trim());
             o.setQuantity(r.getQuantity());
             o.setUnitPrice(r.getUnitPrice());
+
+            BigDecimal amt = o.getUnitPrice().multiply(BigDecimal.valueOf(o.getQuantity()))
+                    .setScale(2, RoundingMode.HALF_UP);
+            o.setAmount(amt);
+
             o.setScheduleNo(r.getScheduleNo());
             o.setMaterial(r.getMaterial());
             o.setRemark(r.getRemark());
             o.setCustomerId(c.getId());
             o.setCustomerName(c.getCustomerName());
+
             if (StringUtils.hasText(r.getMoldModel())) {
-                KnifeMold m = knifeMoldService.lambdaQuery()
-                        .eq(KnifeMold::getModel, r.getMoldModel().trim())
-                        .one();
+                KnifeMold m = moldMap.get(r.getMoldModel().trim());
                 if (m != null) {
                     o.setMoldId(m.getId());
                     o.setMoldName(m.getMoldName());
@@ -209,7 +256,11 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
             }
             o.setShipped(ship);
             o.setOrderNo(BizNoUtil.orderNo());
-            saveOrder(o);
+            ordersToSave.add(o);
+        }
+
+        if (!ordersToSave.isEmpty()) {
+            saveBatch(ordersToSave);
         }
     }
 }
