@@ -32,13 +32,14 @@ import java.util.List;
 @RequestMapping("/api/knife-molds")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('SUPER_ADMIN','EMPLOYEE')")
+@org.springframework.validation.annotation.Validated
 public class KnifeMoldController {
 
     private final KnifeMoldService knifeMoldService;
 
     @Operation(summary = "分页查询")
     @GetMapping
-    public R<PageResult<KnifeMold>> page(KnifeMoldQuery query) {
+    public R<PageResult<KnifeMold>> page(@Valid KnifeMoldQuery query) {
         return R.ok(knifeMoldService.pageQuery(query));
     }
 

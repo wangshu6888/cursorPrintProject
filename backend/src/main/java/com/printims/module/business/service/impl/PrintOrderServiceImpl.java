@@ -83,12 +83,43 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
 
     @Override
     @CacheEvict(value = "dashboard", allEntries = true)
+    @Transactional(rollbackFor = Exception.class)
     public void saveOrder(PrintOrder entity) {
+        // Quick add for Customer (with dedup check)
+        if (entity.getCustomerId() == null && StringUtils.hasText(entity.getCustomerName())) {
+            Customer existing = customerService.lambdaQuery()
+                    .eq(Customer::getCustomerName, entity.getCustomerName().trim())
+                    .one();
+            if (existing != null) {
+                entity.setCustomerId(existing.getId());
+            } else {
+                Customer newCustomer = new Customer();
+                newCustomer.setCustomerName(entity.getCustomerName().trim());
+                newCustomer.setPhone(null);
+                customerService.saveCustomer(newCustomer);
+                entity.setCustomerId(newCustomer.getId());
+            }
+        }
+
         Customer c = customerService.getById(entity.getCustomerId());
         if (c == null) {
             throw new BusinessException("客户不存在");
         }
         entity.setCustomerName(c.getCustomerName());
+
+        // Quick add for KnifeMold
+        if (entity.getMoldId() == null && StringUtils.hasText(entity.getMoldName())) {
+            KnifeMold newMold = new KnifeMold();
+            newMold.setMoldName(entity.getMoldName());
+            newMold.setShapeType("CUSTOM");
+            newMold.setAreaCode(null);
+            newMold.setShelfNo(null);
+            newMold.setLayerNo(null);
+            newMold.setPositionNo(null);
+            knifeMoldService.saveMold(newMold);
+            entity.setMoldId(newMold.getId());
+        }
+
         if (entity.getMoldId() != null) {
             KnifeMold m = knifeMoldService.getById(entity.getMoldId());
             if (m != null) {
@@ -98,7 +129,10 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
         if (entity.getQuantity() != null && entity.getUnitPrice() != null) {
             BigDecimal amt = entity.getUnitPrice().multiply(BigDecimal.valueOf(entity.getQuantity()))
                     .setScale(2, RoundingMode.HALF_UP);
+            // Forcefully override frontend amount
             entity.setAmount(amt);
+        } else {
+            entity.setAmount(BigDecimal.ZERO);
         }
         if (!StringUtils.hasText(entity.getOrderNo())) {
             entity.setOrderNo(BizNoUtil.orderNo());

@@ -32,13 +32,14 @@ import java.io.IOException;
 @RequestMapping("/api/customers")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('SUPER_ADMIN','EMPLOYEE')")
+@org.springframework.validation.annotation.Validated
 public class CustomerController {
 
     private final CustomerService customerService;
 
     @Operation(summary = "分页查询")
     @GetMapping
-    public R<PageResult<Customer>> page(CustomerQuery query) {
+    public R<PageResult<Customer>> page(@Valid CustomerQuery query) {
         return R.ok(customerService.pageQuery(query));
     }
 

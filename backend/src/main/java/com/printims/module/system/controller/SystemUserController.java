@@ -17,6 +17,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,6 +42,7 @@ import java.util.List;
 @RequestMapping("/api/system/users")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('SUPER_ADMIN')")
+@Validated
 public class SystemUserController {
 
     private final SysUserService sysUserService;
@@ -48,8 +52,8 @@ public class SystemUserController {
     @Operation(summary = "分页")
     @GetMapping
     public R<PageResult<SysUser>> page(
-            @RequestParam(defaultValue = "1") long pageNum,
-            @RequestParam(defaultValue = "20") long pageSize,
+            @RequestParam(defaultValue = "1") @Min(1) long pageNum,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(1000) long pageSize,
             @RequestParam(required = false) String keyword) {
         Page<SysUser> p = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<SysUser> w = new LambdaQueryWrapper<>();
