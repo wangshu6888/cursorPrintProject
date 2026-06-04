@@ -29,6 +29,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import http from '@/api/http'
+import { formatTime } from '@/utils/format'
 
 const loading = ref(false)
 const rows = ref<Record<string, unknown>[]>([])
@@ -49,18 +50,7 @@ async function load() {
 
 onMounted(load)
 
-function formatTime(v: unknown): string {
-  if (!v) return ''
-  if (Array.isArray(v) && v.length >= 5) {
-    const [y, m, d, hh, mm] = v as number[]
-    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
-  }
-  const s = String(v)
-  if (s.includes('T')) {
-    return s.replace('T', ' ').substring(0, 16)
-  }
-  return s
-}
+
 </script>
 
 <style scoped lang="scss">

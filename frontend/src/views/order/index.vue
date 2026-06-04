@@ -191,6 +191,7 @@ import http from '@/api/http'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { UploadRequestOptions } from 'element-plus'
+import { formatTime } from '@/utils/format'
 
 const u = useUserStore()
 const router = useRouter()
@@ -413,18 +414,7 @@ async function batchShip() {
   load()
 }
 
-function formatTime(v: unknown): string {
-  if (!v) return ''
-  if (Array.isArray(v) && v.length >= 5) {
-    const [y, m, d, hh, mm] = v as number[]
-    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')} ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
-  }
-  const s = String(v)
-  if (s.includes('T')) {
-    return s.replace('T', ' ').substring(0, 16)
-  }
-  return s
-}
+
 
 onMounted(load)
 </script>
