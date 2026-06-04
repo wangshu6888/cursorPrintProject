@@ -10,6 +10,7 @@ import com.printims.module.business.dto.KnifeMoldQuery;
 import com.printims.module.business.entity.KnifeMold;
 import com.printims.module.business.mapper.KnifeMoldMapper;
 import com.printims.module.business.service.KnifeMoldService;
+import org.springframework.transaction.annotation.Transactional;
 import com.printims.util.BizNoUtil;
 import com.printims.util.KnifeMoldRules;
 import org.springframework.stereotype.Service;
