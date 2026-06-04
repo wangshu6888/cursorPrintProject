@@ -11,6 +11,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +30,7 @@ import java.time.LocalDateTime;
 @RequestMapping("/api/system/logs")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('SUPER_ADMIN')")
-@org.springframework.validation.annotation.Validated
+@Validated
 public class SystemLogController {
 
     private final SysOperationLogService logService;
@@ -35,8 +38,8 @@ public class SystemLogController {
     @Operation(summary = "分页查询")
     @GetMapping
     public R<PageResult<SysOperationLog>> page(
-            @RequestParam(defaultValue = "1") @jakarta.validation.constraints.Min(1) long pageNum,
-            @RequestParam(defaultValue = "20") @jakarta.validation.constraints.Min(1) @jakarta.validation.constraints.Max(1000) long pageSize,
+            @RequestParam(defaultValue = "1") @Min(1) long pageNum,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(1000) long pageSize,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
