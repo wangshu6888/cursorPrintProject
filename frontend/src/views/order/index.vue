@@ -301,6 +301,7 @@ function quickMold() {
 }
 
 async function saveQuickMold() {
+  if (!qm.moldName || !qm.moldName.trim()) { ElMessage.warning('请输入刀模名称'); return; }
   await http.post('/knife-molds', {
     moldName: qm.moldName,
     shapeType: 'CUSTOM',

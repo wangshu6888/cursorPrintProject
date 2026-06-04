@@ -74,13 +74,20 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void saveOrder(PrintOrder entity) {
-        // Quick add for Customer
+        // Quick add for Customer (with dedup check)
         if (entity.getCustomerId() == null && StringUtils.hasText(entity.getCustomerName())) {
-            Customer newCustomer = new Customer();
-            newCustomer.setCustomerName(entity.getCustomerName());
-            newCustomer.setPhone("00000000000"); // Dummy phone as it's required in some logic, but let's see if DB allows null. DB schema says phone is varchar(20), not strictly not null in DB perhaps, but required in docs.
-            customerService.saveCustomer(newCustomer);
-            entity.setCustomerId(newCustomer.getId());
+            Customer existing = customerService.lambdaQuery()
+                    .eq(Customer::getCustomerName, entity.getCustomerName().trim())
+                    .one();
+            if (existing != null) {
+                entity.setCustomerId(existing.getId());
+            } else {
+                Customer newCustomer = new Customer();
+                newCustomer.setCustomerName(entity.getCustomerName().trim());
+                newCustomer.setPhone(null);
+                customerService.saveCustomer(newCustomer);
+                entity.setCustomerId(newCustomer.getId());
+            }
         }
 
         Customer c = customerService.getById(entity.getCustomerId());
@@ -94,10 +101,10 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
             KnifeMold newMold = new KnifeMold();
             newMold.setMoldName(entity.getMoldName());
             newMold.setShapeType("CUSTOM");
-            newMold.setAreaCode("A");
-            newMold.setShelfNo("1");
-            newMold.setLayerNo("1");
-            newMold.setPositionNo("1");
+            newMold.setAreaCode(null);
+            newMold.setShelfNo(null);
+            newMold.setLayerNo(null);
+            newMold.setPositionNo(null);
             knifeMoldService.saveMold(newMold);
             entity.setMoldId(newMold.getId());
         }
