@@ -6,7 +6,9 @@
       <el-button type="primary" @click="load">查询</el-button>
     </el-form>
     <el-table :data="rows" v-loading="loading" stripe>
-      <el-table-column prop="createTime" label="时间" width="170" />
+      <el-table-column label="时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
       <el-table-column prop="username" label="用户" width="100" />
       <el-table-column prop="operation" label="操作" />
       <el-table-column prop="ip" label="IP" width="120" />
@@ -27,6 +29,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import http from '@/api/http'
+import { formatTime } from '@/utils/format'
 
 const loading = ref(false)
 const rows = ref<Record<string, unknown>[]>([])
@@ -46,6 +49,8 @@ async function load() {
 }
 
 onMounted(load)
+
+
 </script>
 
 <style scoped lang="scss">

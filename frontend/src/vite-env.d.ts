@@ -5,3 +5,11 @@ declare module '*.vue' {
   const component: DefineComponent<object, object, unknown>
   export default component
 }
+
+declare module 'qrcode' {
+  export function toCanvas(
+    canvas: HTMLCanvasElement,
+    text: string,
+    options?: { width?: number; margin?: number }
+  ): Promise<void>
+}

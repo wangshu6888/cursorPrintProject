@@ -52,9 +52,9 @@ public class KnifeMoldController {
     @Log("保存刀模")
     @Operation(summary = "保存")
     @PostMapping
-    public R<Void> save(@Valid @RequestBody KnifeMold body) {
+    public R<KnifeMold> save(@Valid @RequestBody KnifeMold body) {
         knifeMoldService.saveMold(body);
-        return R.ok(null);
+        return R.ok(body);
     }
 
     @Log("更新刀模")

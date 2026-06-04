@@ -10,6 +10,7 @@ import com.printims.module.business.dto.KnifeMoldQuery;
 import com.printims.module.business.entity.KnifeMold;
 import com.printims.module.business.mapper.KnifeMoldMapper;
 import com.printims.module.business.service.KnifeMoldService;
+import org.springframework.transaction.annotation.Transactional;
 import com.printims.util.BizNoUtil;
 import com.printims.util.KnifeMoldRules;
 import org.springframework.cache.annotation.CacheEvict;
@@ -49,8 +50,49 @@ public class KnifeMoldServiceImpl extends ServiceImpl<KnifeMoldMapper, KnifeMold
     @CacheEvict(value = "dashboard", allEntries = true)
     public void saveMold(KnifeMold entity) {
         validateShape(entity);
+
+        if (!StringUtils.hasText(entity.getPositionNo())) {
+            List<KnifeMold> siblings = lambdaQuery()
+                    .eq(KnifeMold::getAreaCode, entity.getAreaCode())
+                    .eq(KnifeMold::getShelfNo, entity.getShelfNo())
+                    .eq(KnifeMold::getLayerNo, entity.getLayerNo())
+                    .apply(entity.getId() != null, "id <> {0}", entity.getId())
+                    .list();
+            int maxNo = 0;
+            for (KnifeMold m : siblings) {
+                if (StringUtils.hasText(m.getPositionNo())) {
+                    try {
+                        int n = Integer.parseInt(m.getPositionNo().trim());
+                        if (n > maxNo) maxNo = n;
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+            entity.setPositionNo(String.valueOf(maxNo + 1));
+        }
+
         entity.setLocationCode(KnifeMoldRules.buildLocationCode(
                 entity.getAreaCode(), entity.getShelfNo(), entity.getLayerNo(), entity.getPositionNo()));
+
+        if (entity.getId() == null) {
+            long count = lambdaQuery()
+                    .eq(KnifeMold::getLocationCode, entity.getLocationCode())
+                    .count();
+            if (count > 0) {
+                throw new BusinessException("该位置已被占用");
+            }
+        } else {
+            KnifeMold existing = getById(entity.getId());
+            if (existing != null && !entity.getLocationCode().equals(existing.getLocationCode())) {
+                long count = lambdaQuery()
+                        .eq(KnifeMold::getLocationCode, entity.getLocationCode())
+                        .count();
+                if (count > 0) {
+                    throw new BusinessException("该位置已被占用");
+                }
+            }
+        }
+
         if (!StringUtils.hasText(entity.getModel())) {
             entity.setModel(KnifeMoldRules.buildModel(
                     entity.getShapeType(), entity.getLength(), entity.getWidth(), entity.getDiameter(),
@@ -61,6 +103,18 @@ public class KnifeMoldServiceImpl extends ServiceImpl<KnifeMoldMapper, KnifeMold
         }
         if (!StringUtils.hasText(entity.getStatus())) {
             entity.setStatus("IN_STOCK");
+        }
+        if (entity.getId() == null && StringUtils.hasText(entity.getMoldName())) {
+            String shapeCn = switch (entity.getShapeType() != null ? entity.getShapeType().toUpperCase() : "") {
+                case "SQUARE" -> "正方形";
+                case "CIRCLE" -> "圆形";
+                case "CUSTOM" -> "异型";
+                default -> "矩形";
+            };
+            String suffix = "-" + shapeCn + "-" + entity.getModel();
+            if (!entity.getMoldName().endsWith(suffix)) {
+                entity.setMoldName(entity.getMoldName() + suffix);
+            }
         }
         saveOrUpdate(entity);
     }
@@ -90,6 +144,7 @@ public class KnifeMoldServiceImpl extends ServiceImpl<KnifeMoldMapper, KnifeMold
             KnifeLabelVO vo = new KnifeLabelVO();
             vo.setId(m.getId());
             vo.setMoldNo(m.getMoldNo());
+            vo.setShapeType(m.getShapeType());
             vo.setModel(m.getModel());
             vo.setLocationCode(m.getLocationCode());
             vo.setLength(m.getLength());

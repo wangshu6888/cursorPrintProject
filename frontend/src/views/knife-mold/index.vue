@@ -21,10 +21,14 @@
       <el-table-column type="selection" width="48" />
       <el-table-column prop="moldNo" label="编号" width="150" />
       <el-table-column prop="moldName" label="名称" />
-      <el-table-column prop="shapeType" label="形状" width="100" />
+      <el-table-column label="形状" width="100">
+        <template #default="{ row }">{{ shapeLabel(row.shapeType) }}</template>
+      </el-table-column>
       <el-table-column prop="model" label="型号" width="100" />
       <el-table-column prop="locationCode" label="位置" width="120" />
-      <el-table-column prop="status" label="状态" width="90" />
+      <el-table-column label="状态" width="90">
+        <template #default="{ row }">{{ statusLabel(row.status) }}</template>
+      </el-table-column>
       <el-table-column label="操作" width="140" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="open(row)">编辑</el-button>
@@ -54,8 +58,8 @@
             <el-option value="CUSTOM" label="异型" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="form.shapeType === 'RECTANGLE' || form.shapeType === 'SQUARE'" label="长×宽 mm">
-          <el-input-number v-model="form.length" :min="0" /> ×
+        <el-form-item v-if="form.shapeType === 'RECTANGLE' || form.shapeType === 'SQUARE'" label="长*宽 mm">
+          <el-input-number v-model="form.length" :min="0" /> *
           <el-input-number v-model="form.width" :min="0" />
         </el-form-item>
         <el-form-item v-if="form.shapeType === 'CIRCLE'" label="直径 mm">
@@ -73,8 +77,8 @@
         <el-form-item label="层号" required>
           <el-input v-model="form.layerNo" placeholder="如 01" />
         </el-form-item>
-        <el-form-item label="序号" required>
-          <el-input v-model="form.positionNo" placeholder="位置序号" />
+        <el-form-item label="序号">
+          <el-input v-model="form.positionNo" placeholder="留空则自动生成" />
         </el-form-item>
         <el-form-item label="型号(可空)">
           <el-input v-model="form.model" placeholder="留空则自动生成" />
@@ -100,7 +104,7 @@
         <div v-for="(l, i) in labels" :key="i" class="lab-item">
           <canvas :id="'qr' + i" width="96" height="96" />
           <div class="lab-meta">
-            <div><b>{{ l.moldNo }}</b> {{ l.model }}</div>
+            <div><b>{{ shapeLabel(l.shapeType) }}</b> {{ l.model }}</div>
             <div>{{ l.locationCode }}</div>
             <div class="small">{{ l.remark }}</div>
           </div>
@@ -155,7 +159,7 @@ function open(row?: Record<string, unknown>) {
       areaCode: 'A',
       shelfNo: '1',
       layerNo: '01',
-      positionNo: '1',
+      positionNo: '',
       model: '',
       status: 'IN_STOCK',
       remark: '',
@@ -198,6 +202,16 @@ function printLab() {
   window.print()
 }
 
+function shapeLabel(v: unknown): string {
+  const map: Record<string, string> = { RECTANGLE: '矩形', SQUARE: '正方形', CIRCLE: '圆形', CUSTOM: '异型' }
+  return map[String(v)] || String(v || '')
+}
+
+function statusLabel(v: unknown): string {
+  const map: Record<string, string> = { IN_STOCK: '在库', OUT_STOCK: '已出库' }
+  return map[String(v)] || String(v || '')
+}
+
 onMounted(load)
 </script>
 
@@ -211,7 +225,7 @@ onMounted(load)
   gap: 12px;
   margin-bottom: 16px;
   padding: 12px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 .lab-meta .small {

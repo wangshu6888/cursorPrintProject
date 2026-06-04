@@ -128,7 +128,7 @@ async function exportFile() {
   const url = URL.createObjectURL(res.data)
   const a = document.createElement('a')
   a.href = url
-  a.download = 'customers.xlsx'
+  a.download = `客户导出_${new Date().toISOString().slice(0, 16).replace('T', '_').replace(/:/g, '')}.xlsx`
   a.click()
   URL.revokeObjectURL(url)
 }

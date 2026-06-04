@@ -52,10 +52,10 @@ public class CustomerController {
     @Log("新增客户")
     @Operation(summary = "新增")
     @PostMapping
-    public R<Void> save(@Valid @RequestBody Customer body) {
+    public R<Customer> save(@Valid @RequestBody Customer body) {
         body.setId(null);
         customerService.saveCustomer(body);
-        return R.ok(null);
+        return R.ok(body);
     }
 
     @Log("更新客户")

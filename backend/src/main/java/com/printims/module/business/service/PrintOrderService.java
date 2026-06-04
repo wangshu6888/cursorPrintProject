@@ -27,4 +27,6 @@ public interface PrintOrderService extends IService<PrintOrder> {
     void exportExcelToStream(java.io.OutputStream outputStream, OrderQuery query) throws IOException;
 
     void importExcel(MultipartFile file) throws IOException;
+
+    void batchShip(List<Long> ids);
 }

@@ -85,6 +85,9 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
     @CacheEvict(value = "dashboard", allEntries = true)
     @Transactional(rollbackFor = Exception.class)
     public void saveOrder(PrintOrder entity) {
+        if (entity.getOrderDate() == null) {
+            entity.setOrderDate(LocalDateTime.now());
+        }
         // Quick add for Customer (with dedup check)
         if (entity.getCustomerId() == null && StringUtils.hasText(entity.getCustomerName())) {
             Customer existing = customerService.lambdaQuery()
@@ -101,11 +104,13 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
             }
         }
 
-        Customer c = customerService.getById(entity.getCustomerId());
-        if (c == null) {
-            throw new BusinessException("客户不存在");
+        if (entity.getCustomerId() != null) {
+            Customer c = customerService.getById(entity.getCustomerId());
+            if (c == null) {
+                throw new BusinessException("客户不存在");
+            }
+            entity.setCustomerName(c.getCustomerName());
         }
-        entity.setCustomerName(c.getCustomerName());
 
         // Quick add for KnifeMold
         if (entity.getMoldId() == null && StringUtils.hasText(entity.getMoldName())) {
@@ -126,13 +131,15 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
                 entity.setMoldName(m.getMoldName());
             }
         }
-        if (entity.getQuantity() != null && entity.getUnitPrice() != null) {
-            BigDecimal amt = entity.getUnitPrice().multiply(BigDecimal.valueOf(entity.getQuantity()))
-                    .setScale(2, RoundingMode.HALF_UP);
-            // Forcefully override frontend amount
-            entity.setAmount(amt);
-        } else {
-            entity.setAmount(BigDecimal.ZERO);
+        if (entity.getQuantity() != null) {
+            if (entity.getUnitPrice() != null) {
+                BigDecimal amt = entity.getUnitPrice().multiply(BigDecimal.valueOf(entity.getQuantity()))
+                        .setScale(2, RoundingMode.HALF_UP);
+                entity.setAmount(amt);
+            } else if (entity.getAmount() != null) {
+                BigDecimal up = entity.getAmount().divide(BigDecimal.valueOf(entity.getQuantity()), 4, RoundingMode.HALF_UP);
+                entity.setUnitPrice(up.setScale(2, RoundingMode.HALF_UP));
+            }
         }
         if (!StringUtils.hasText(entity.getOrderNo())) {
             entity.setOrderNo(BizNoUtil.orderNo());
@@ -296,5 +303,18 @@ public class PrintOrderServiceImpl extends ServiceImpl<PrintOrderMapper, PrintOr
         if (!ordersToSave.isEmpty()) {
             saveBatch(ordersToSave);
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchShip(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new BusinessException("请选择订单");
+        }
+        List<PrintOrder> orders = listByIds(ids);
+        for (PrintOrder o : orders) {
+            o.setShipped(1);
+        }
+        updateBatchById(orders);
     }
 }
